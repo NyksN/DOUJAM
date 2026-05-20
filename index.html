@@ -14,30 +14,31 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 
-/* ARKA PLAN VE DERİNLİK EFEKTLERİ */
-body{
-    height:100vh;
-    overflow:hidden;
-    color:white;
-    /* Ana Gradyan */
-    background:radial-gradient(circle at top, #1a0f08, #000);
-    font-family:'Montserrat',sans-serif;
+body {
+    height: 100vh;
+    overflow: hidden;
+    color: white;
+    background: #0a0502; /* Çok koyu baz renk */
+    font-family: 'Montserrat', sans-serif;
     position: relative;
 }
 
-/* 1. Sade Detay: Hafif Dijital Grid Dokusu */
-body::before {
-    content: "";
+/* 1. YENİ: Nefes Alan Ambiyans Işığı */
+.bg-glow {
     position: absolute;
-    inset: 0;
-    background-image: 
-        linear-gradient(rgba(255, 122, 0, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 122, 0, 0.03) 1px, transparent 1px);
-    background-size: 50px 50px;
+    top: -30%; left: -30%; right: -30%; bottom: -30%;
+    background: radial-gradient(circle at 50% 30%, rgba(255, 122, 0, 0.15), transparent 60%);
+    animation: bgBreathe 8s ease-in-out infinite alternate;
     z-index: 1;
+    pointer-events: none;
 }
 
-/* 2. Sade Detay: Arkadan Yavaşça Geçen Işık Topları (Bokeh) */
+@keyframes bgBreathe {
+    0% { opacity: 0.3; transform: scale(0.9); }
+    100% { opacity: 1; transform: scale(1.1); }
+}
+
+/* 2. YENİ: Küçüklü Büyüklü, Çok Saydam Kayan Işıklar */
 .bokeh-layer {
     position: absolute;
     width: 100%;
@@ -50,21 +51,24 @@ body::before {
     background: white;
     border-radius: 50%;
     opacity: 0;
-    filter: blur(20px);
-    animation: drift 20s linear infinite;
+    animation: drift linear infinite;
 }
-.bokeh:nth-child(1) { width: 100px; height: 100px; left: 10%; background: #ff7a00; animation-duration: 25s; animation-delay: -2s; }
-.bokeh:nth-child(2) { width: 80px; height: 80px; left: 40%; background: #ffffff; animation-duration: 30s; animation-delay: -10s; }
-.bokeh:nth-child(3) { width: 120px; height: 120px; left: 80%; background: #ff7a00; animation-duration: 20s; animation-delay: -5s; }
+
+/* Rastgele boyutlar, bulanıklıklar ve süreler */
+.bokeh:nth-child(1) { width: 30px; height: 30px; left: 15%; background: #ff7a00; animation-duration: 18s; animation-delay: 0s; filter: blur(10px); }
+.bokeh:nth-child(2) { width: 180px; height: 180px; left: 35%; background: #ffffff; animation-duration: 35s; animation-delay: -5s; filter: blur(40px); }
+.bokeh:nth-child(3) { width: 70px; height: 70px; left: 75%; background: #ff7a00; animation-duration: 22s; animation-delay: -12s; filter: blur(20px); }
+.bokeh:nth-child(4) { width: 15px; height: 15px; left: 85%; background: #ffffff; animation-duration: 15s; animation-delay: -2s; filter: blur(5px); }
+.bokeh:nth-child(5) { width: 120px; height: 120px; left: 55%; background: #ff7a00; animation-duration: 28s; animation-delay: -18s; filter: blur(30px); }
 
 @keyframes drift {
-    0% { transform: translateY(110vh); opacity: 0; }
-    10% { opacity: 0.05; }
-    90% { opacity: 0.05; }
-    100% { transform: translateY(-20vh); opacity: 0; }
+    0% { transform: translateY(110vh) scale(0.8); opacity: 0; }
+    20% { opacity: 0.02; } /* Opaklık iyice kısıldı (%2) */
+    80% { opacity: 0.02; }
+    100% { transform: translateY(-20vh) scale(1.2); opacity: 0; }
 }
 
-/* ANA İÇERİK KONTENYIRI (Tüm öğelerin üzerinde olmalı) */
+/* ANA İÇERİK KONTENYIRI */
 #main-content {
     position: relative;
     width: 100%;
@@ -103,7 +107,7 @@ body::before {
     font-weight:800; 
     color:#ffb74d; 
     white-space:nowrap; 
-    animation: scrollMarquee 20s linear infinite; /* Biraz yavaşlattım okunsun diye */
+    animation: scrollMarquee 20s linear infinite; 
 }
 
 @keyframes scrollMarquee {
@@ -116,16 +120,14 @@ body::before {
 
 @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-18px);}}
 
-/* YENİ LOGO DÜZENİ VE BOYUTLANDIRMA */
 .logo-container {
     position: absolute;
     bottom: 30px;
-    width: 90px; /* Logoların kaplayacağı eşit kutu boyutu */
+    width: 90px; 
     height: 90px;
     display: flex;
     justify-content: center;
     align-items: center;
-    /* Hafif kurumsal bir parlama efekti */
     background: rgba(255,255,255,0.03);
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 8px;
@@ -136,19 +138,14 @@ body::before {
 .logo-container img {
     max-width: 100%;
     max-height: 100%;
-    /* KRİTİK: Görseller farklı boyutta olsa da bu kod sayesinde 
-       bozulmadan kutunun içine eşit şekilde sığarlar */
     object-fit: contain; 
 }
 
 .logo-left { left: 30px; }
 .logo-right { right: 30px; }
 
-
-/* BİTİŞ EKRANI */
 .overlay{position:absolute;inset:0;background:rgba(0,0,0,.96);display:none;align-items:center;justify-content:center;flex-direction:column; z-index:100;}
 
-/* 3. Sade Detay: Bitişte Dijital Glitch (Parazit) Efekti */
 .overlay h1{
     font-size:100px;
     color:#ff7a00;
@@ -167,7 +164,6 @@ body::before {
     100% { transform: translate(0); text-shadow: 0 0 50px #ff7a00; }
 }
 
-/* Başlangıç Ekranı */
 #init-screen { position:fixed; inset:0; background:#000; z-index:999; display:flex; justify-content:center; align-items:center; cursor:pointer; }
 #init-screen h2 { color:#fff; border: 2px solid #ff7a00; padding: 20px 40px; border-radius: 10px; font-family: 'Montserrat', sans-serif;}
 </style>
@@ -178,7 +174,10 @@ body::before {
     <h2>SİSTEMİ BAŞLAT (TAM EKRAN)</h2>
 </div>
 
+<div class="bg-glow"></div>
 <div class="bokeh-layer">
+    <div class="bokeh"></div>
+    <div class="bokeh"></div>
     <div class="bokeh"></div>
     <div class="bokeh"></div>
     <div class="bokeh"></div>
@@ -219,7 +218,6 @@ body::before {
 <audio id="sfx-notify" src="notify.mp3" preload="auto"></audio>
 
 <script>
-// FIREBASE CONFIG - Değişmedi
 const firebaseConfig = {
     apiKey:"AIzaSyBEXfWs0B3qG5gjswJtvQbgminrBU4XzuE",
     authDomain:"doujam-ed005.firebaseapp.com",
@@ -231,7 +229,6 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const ref = db.ref("timerState");
 
-// DOM Elementleri - Değişmedi
 const timerEl = document.getElementById("timer");
 const titleEl = document.getElementById("title");
 const overlay = document.getElementById("overlay");
@@ -240,7 +237,6 @@ const marqueeBox = document.getElementById("marquee-box");
 const marqueeText = document.getElementById("marquee-text");
 const initScreen = document.getElementById("init-screen");
 
-// Ses Elementleri - Değişmedi
 const sfxTick = document.getElementById("sfx-tick");
 const sfxFinish = document.getElementById("sfx-finish");
 const sfxNotify = document.getElementById("sfx-notify");

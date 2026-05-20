@@ -19,16 +19,15 @@ body{height:100vh;overflow:hidden;color:white;background:radial-gradient(circle 
 
 .center{position:absolute;top:45%;left:50%;transform:translate(-50%,-50%);text-align:center; transition: all 0.5s ease;}
 .title{font-size:45px;font-weight:900;margin-bottom:12px;text-shadow:0 0 20px rgba(255,122,0,.5);}
-.timer{font-family:'Bebas Neue',sans-serif;font-size:140px;color:#ffffff;text-shadow:0 0 30px rgba(255,255,255,.3); transition: color 0.5s;}
+.timer{font-family:'Bebas Neue',sans-serif;font-size:140px;color:#ffffff;text-shadow:0 0 30px rgba(255,255,255,.3); transition: color 0.1s, transform 0.1s, text-shadow 0.1s;}
 .fox{width:360px;margin-bottom:10px;animation:float 4s ease-in-out infinite;}
 
 /* Renk Durumları */
 .color-warning { color: #ffeb3b !important; text-shadow:0 0 30px rgba(255,235,59,.5) !important; }
 .color-danger { color: #ff3d00 !important; text-shadow:0 0 30px rgba(255,61,0,.5) !important; }
-.color-pulse { animation: pulseWarning 1s infinite; }
 
 /* Duraklatıldı Arayüzü */
-.paused-overlay { position:absolute; top:60%; left:50%; transform:translateX(-50%); font-size:24px; font-weight:800; color:#ff7a00; letter-spacing: 4px; opacity:0; transition: opacity 0.3s; background: rgba(0,0,0,0.6); padding: 10px 30px; border-radius: 50px; border: 1px solid #ff7a00; }
+.paused-overlay { position:absolute; top:60%; left:50%; transform:translateX(-50%); font-size:24px; font-weight:800; color:#ff7a00; letter-spacing: 4px; opacity:0; transition: opacity 0.3s; background: rgba(0,0,0,0.6); padding: 10px 30px; border-radius: 50px; border: 1px solid #ff7a00; pointer-events: none;}
 .is-paused .paused-overlay { opacity: 1; }
 .is-paused .timer { opacity: 0.5; }
 
@@ -42,17 +41,16 @@ body{height:100vh;overflow:hidden;color:white;background:radial-gradient(circle 
 
 @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-18px);}}
 @keyframes scroll{0%{transform:translateX(100vw);}100%{transform:translateX(-100%);}}
-@keyframes pulseWarning{0%{transform:scale(1);}50%{transform:scale(1.05); color:#ff0000;}100%{transform:scale(1);}}
 
 .logos{position:absolute;bottom:30px;right:30px;display:flex;gap:15px;}
 .logos img{width:65px;height:65px;object-fit:contain;}
 
 .overlay{position:absolute;inset:0;background:rgba(0,0,0,.95);display:none;align-items:center;justify-content:center;flex-direction:column; z-index:100;}
-.overlay h1{font-size:80px;color:#ff7a00;font-family:'Bebas Neue',sans-serif; text-shadow: 0 0 50px #ff7a00; animation: float 3s ease-in-out infinite;}
+.overlay h1{font-size:100px;color:#ff7a00;font-family:'Bebas Neue',sans-serif; text-shadow: 0 0 50px #ff7a00; animation: float 3s ease-in-out infinite;}
 
 /* Başlangıç Ekranı (Ses yetkisi için) */
 #init-screen { position:fixed; inset:0; background:#000; z-index:999; display:flex; justify-content:center; align-items:center; cursor:pointer; }
-#init-screen h2 { color:#fff; border: 2px solid #ff7a00; padding: 20px 40px; border-radius: 10px; }
+#init-screen h2 { color:#fff; border: 2px solid #ff7a00; padding: 20px 40px; border-radius: 10px; font-family: 'Montserrat', sans-serif;}
 </style>
 </head>
 <body>
@@ -79,8 +77,8 @@ body{height:100vh;overflow:hidden;color:white;background:radial-gradient(circle 
 </div>
 
 <div class="logos">
-    <img src="logo1.png" alt="Logo 1"/>
-    <img src="logo2.png" alt="Logo 2"/>
+    <img src="logo1.png" alt="Logo 1" onerror="this.style.display='none'"/>
+    <img src="logo2.png" alt="Logo 2" onerror="this.style.display='none'"/>
 </div>
 
 <div class="overlay" id="overlay">
@@ -92,28 +90,25 @@ body{height:100vh;overflow:hidden;color:white;background:radial-gradient(circle 
 <audio id="sfx-notify" src="notify.mp3" preload="auto"></audio>
 
 <script>
-// FIREBASE CONFIG BURAYA GELECEK
 const firebaseConfig = {
     apiKey:"AIzaSyBEXfWs0B3qG5gjswJtvQbgminrBU4XzuE",
     authDomain:"doujam-ed005.firebaseapp.com",
     databaseURL:"https://doujam-ed005-default-rtdb.firebaseio.com",
     projectId:"doujam-ed005"
 };
+
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 const ref = db.ref("timerState");
 
-// DOM Elementleri
 const timerEl = document.getElementById("timer");
 const titleEl = document.getElementById("title");
 const overlay = document.getElementById("overlay");
-const centerDiv = document.getElementById("center");
 const progressBar = document.getElementById("progress-bar");
 const marqueeBox = document.getElementById("marquee-box");
 const marqueeText = document.getElementById("marquee-text");
 const initScreen = document.getElementById("init-screen");
 
-// Ses Elementleri
 const sfxTick = document.getElementById("sfx-tick");
 const sfxFinish = document.getElementById("sfx-finish");
 const sfxNotify = document.getElementById("sfx-notify");
@@ -121,20 +116,18 @@ const sfxNotify = document.getElementById("sfx-notify");
 let state = { running: false, endTime: 0, pausedLeft: 0, totalDuration: 0, finished: false };
 let lastSecond = -1;
 let finishTriggered = false;
+let confettiInterval; 
 
-// Sistemi yetkilendirme (Tam ekran ve ses izni)
 function initSystem() {
     initScreen.style.display = "none";
     if(document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen();
     }
-    // Sesleri bir kere boş çaldırıp donduruyoruz (Tarayıcı kilidini açmak için)
     sfxTick.play().then(() => { sfxTick.pause(); sfxTick.currentTime = 0; }).catch(e=>{});
     sfxFinish.play().then(() => { sfxFinish.pause(); sfxFinish.currentTime = 0; }).catch(e=>{});
     sfxNotify.play().then(() => { sfxNotify.pause(); sfxNotify.currentTime = 0; }).catch(e=>{});
 }
 
-// Zaman formatlayıcı
 function format(ms) {
     if(ms < 0) ms = 0;
     let totalSec = Math.floor(ms / 1000);
@@ -144,20 +137,27 @@ function format(ms) {
     return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
 }
 
-// Veritabanını Dinleme (Sadece state değiştiğinde tetiklenir)
+function randomInRange(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+function fireConfetti() {
+    var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 1000 };
+    confetti(Object.assign({}, defaults, { particleCount: 50, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+    confetti(Object.assign({}, defaults, { particleCount: 50, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+}
+
 ref.on("value", (snap) => {
     const data = snap.val();
     if(!data) return;
     
-    // Mesaj bildirimi sesi (Mesaj değiştiyse)
     if(state.message !== data.message && state.message !== undefined && data.showMarquee) {
         sfxNotify.play();
     }
 
     state = data;
-    titleEl.innerText = state.title;
+    titleEl.innerText = state.title || "Etkinlik";
     
-    // Marquee Kontrolü
     if(state.showMarquee && state.message) {
         marqueeBox.style.display = "block";
         marqueeText.innerText = state.message;
@@ -165,28 +165,27 @@ ref.on("value", (snap) => {
         marqueeBox.style.display = "none";
     }
 
-    // Duraklatıldı UI Kontrolü
     if(!state.running && state.pausedLeft > 0 && !state.finished) {
         document.body.classList.add("is-paused");
     } else {
         document.body.classList.remove("is-paused");
     }
 
-    // Bitiş Ekranı Kontrolü
     if(state.finished) {
         overlay.style.display = "flex";
         if(!finishTriggered) {
-            confetti({ particleCount: 150, spread: 180, origin: { y: 0.1 } });
             sfxFinish.play();
             finishTriggered = true;
+            fireConfetti(); 
+            confettiInterval = setInterval(fireConfetti, 400); 
         }
     } else {
         overlay.style.display = "none";
         finishTriggered = false;
+        clearInterval(confettiInterval); 
     }
 });
 
-// Update Döngüsü (Oyun motoru mantığı - Her frame kendi kendine hesaplar)
 function updateLoop() {
     let timeLeftMs = 0;
 
@@ -198,7 +197,6 @@ function updateLoop() {
 
     if (timeLeftMs < 0) timeLeftMs = 0;
 
-    // Saniye dönümünü yakalama (Tik-Tak sesi için)
     let currentSecond = Math.floor(timeLeftMs / 1000);
     
     if(state.running && currentSecond > 0 && currentSecond <= 10 && currentSecond !== lastSecond) {
@@ -207,23 +205,33 @@ function updateLoop() {
     }
     lastSecond = currentSecond;
 
-    // Görsel Güncelleme
     timerEl.innerText = format(timeLeftMs);
 
-    // Bitiş Tetikleyicisi (Localden veritabanına sadece bir kez yazar)
     if (state.running && timeLeftMs <= 0 && !state.finished) {
         ref.update({ running: false, finished: true, pausedLeft: 0 });
     }
 
-    // Renk ve Pulse State Geçişleri
-    timerEl.className = "timer"; // Reset
-    if(currentSecond <= 60 && currentSecond > 0 && state.running) {
-        timerEl.classList.add("color-danger", "color-pulse");
-    } else if (currentSecond <= 600 && currentSecond > 0) {
+    // Nefes Alan Bloom Efekti (Son 60 Saniye)
+    timerEl.className = "timer"; 
+    if(timeLeftMs <= 60000 && timeLeftMs > 0 && state.running) {
+        let intensity = (Math.sin(Date.now() / 200) + 1) / 2; 
+        let blurAmount = 20 + (intensity * 50); 
+        timerEl.style.textShadow = `0 0 ${blurAmount}px rgba(255, 61, 0, ${0.6 + (intensity * 0.4)})`;
+        timerEl.style.color = `rgb(255, ${255 - (intensity * 100)}, ${255 - (intensity * 100)})`; 
+        timerEl.style.transform = `scale(${1 + (intensity * 0.02)})`; 
+    } 
+    else if (currentSecond <= 600 && currentSecond > 0) {
+        timerEl.style.textShadow = ""; 
+        timerEl.style.color = "";
+        timerEl.style.transform = "scale(1)";
         timerEl.classList.add("color-warning");
+    } 
+    else {
+        timerEl.style.textShadow = "";
+        timerEl.style.color = "";
+        timerEl.style.transform = "scale(1)";
     }
 
-    // Progress Bar Hesaplama
     if(state.totalDuration > 0) {
         let percent = (timeLeftMs / state.totalDuration) * 100;
         progressBar.style.width = Math.min(100, Math.max(0, percent)) + "%";
@@ -234,7 +242,6 @@ function updateLoop() {
     requestAnimationFrame(updateLoop);
 }
 
-// Döngüyü başlat
 requestAnimationFrame(updateLoop);
 </script>
 </body>

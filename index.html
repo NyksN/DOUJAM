@@ -31,16 +31,42 @@ body{height:100vh;overflow:hidden;color:white;background:radial-gradient(circle 
 .is-paused .paused-overlay { opacity: 1; }
 .is-paused .timer { opacity: 0.5; }
 
-/* Kayan Yazı (Marquee) */
-.marquee-container { position:absolute; top:80px; width:100%; background:rgba(255,122,0,0.15); border-top:1px solid rgba(255,122,0,0.3); border-bottom:1px solid rgba(255,122,0,0.3); padding:8px 0; overflow:hidden; display:none; }
-.marquee-content { display:inline-block; white-space:nowrap; animation:scroll 20s linear infinite; font-size:20px; font-weight:500; color:#ffb74d; }
+/* YENİ: Geliştirilmiş Büyük ve Sonsuz Kayan Yazı Bandı */
+.marquee-container { 
+    position:absolute; 
+    top:80px; 
+    width:100%; 
+    background:rgba(255,122,0,0.2); 
+    border-top:2px solid rgba(255,122,0,0.4); 
+    border-bottom:2px solid rgba(255,122,0,0.4); 
+    padding:15px 0; 
+    overflow:hidden; 
+    display:none; 
+}
+.marquee-wrapper {
+    display: flex;
+    width: max-content;
+    animation: scrollMarquee 15s linear infinite; /* Hızı buradan ayarlayabilirsin */
+}
+.marquee-content { 
+    font-size:32px; /* Yazı boyutu büyütüldü */
+    font-weight:800; 
+    color:#ffb74d; 
+    padding-right:150px; /* İki yazı arasındaki boşluk miktarı */
+    white-space:nowrap; 
+}
+
+/* Kusursuz sonsuz döngü animasyonu */
+@keyframes scrollMarquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
 
 /* Progress Bar */
 .progress-bar-container { position:absolute; bottom:0; left:0; width:100%; height:8px; background:rgba(255,255,255,0.1); }
 .progress-bar-fill { height:100%; background:linear-gradient(90deg,#ff7a00,#ffeb3b); width:100%; transition: width 0.5s linear; }
 
 @keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-18px);}}
-@keyframes scroll{0%{transform:translateX(100vw);}100%{transform:translateX(-100%);}}
 
 .logos{position:absolute;bottom:30px;right:30px;display:flex;gap:15px;}
 .logos img{width:65px;height:65px;object-fit:contain;}
@@ -62,7 +88,10 @@ body{height:100vh;overflow:hidden;color:white;background:radial-gradient(circle 
 <div class="brand">DOU JAM</div>
 
 <div class="marquee-container" id="marquee-box">
-    <div class="marquee-content" id="marquee-text">DOU JAM Etkinliğine Hoş Geldiniz!</div>
+    <div class="marquee-wrapper">
+        <div class="marquee-content" id="marquee-text1">DOU JAM</div>
+        <div class="marquee-content" id="marquee-text2">DOU JAM</div>
+    </div>
 </div>
 
 <div class="center" id="center">
@@ -106,7 +135,8 @@ const titleEl = document.getElementById("title");
 const overlay = document.getElementById("overlay");
 const progressBar = document.getElementById("progress-bar");
 const marqueeBox = document.getElementById("marquee-box");
-const marqueeText = document.getElementById("marquee-text");
+const marqueeText1 = document.getElementById("marquee-text1");
+const marqueeText2 = document.getElementById("marquee-text2");
 const initScreen = document.getElementById("init-screen");
 
 const sfxTick = document.getElementById("sfx-tick");
@@ -117,6 +147,16 @@ let state = { running: false, endTime: 0, pausedLeft: 0, totalDuration: 0, finis
 let lastSecond = -1;
 let finishTriggered = false;
 let confettiInterval; 
+
+// Sunucu saat farkı senkronizasyonu (Kritik Düzeltme)
+let serverOffset = 0;
+db.ref(".info/serverTimeOffset").on("value", (snap) => {
+    serverOffset = snap.val() || 0;
+});
+
+function getServerTime() {
+    return Date.now() + serverOffset;
+}
 
 function initSystem() {
     initScreen.style.display = "none";
@@ -158,9 +198,11 @@ ref.on("value", (snap) => {
     state = data;
     titleEl.innerText = state.title || "Etkinlik";
     
+    // Mesaj Alanı Güncellemesi (Kusursuz İkizleme)
     if(state.showMarquee && state.message) {
         marqueeBox.style.display = "block";
-        marqueeText.innerText = state.message;
+        marqueeText1.innerText = state.message;
+        marqueeText2.innerText = state.message;
     } else {
         marqueeBox.style.display = "none";
     }
@@ -190,7 +232,7 @@ function updateLoop() {
     let timeLeftMs = 0;
 
     if (state.running) {
-        timeLeftMs = state.endTime - Date.now();
+        timeLeftMs = state.endTime - getServerTime(); // Yerel saat değil sunucu saati kullanılıyor
     } else {
         timeLeftMs = state.pausedLeft;
     }

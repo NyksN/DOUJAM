@@ -8,165 +8,51 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@300;500;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
 
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
+body{height:100vh;overflow:hidden;color:white;background:radial-gradient(circle at top,#1a0f08,#000);font-family:'Montserrat',sans-serif;}
 
-body{
-  height:100vh;
-  overflow:hidden;
-  color:white;
-  background: radial-gradient(circle at top,#1a0f08,#000);
-  font-family:'Montserrat',sans-serif;
-}
+.brand{position:absolute;top:20px;left:50%;transform:translateX(-50%);letter-spacing:6px;font-size:13px;opacity:.6;}
 
-.brand{
-  position:absolute;
-  top:20px;
-  left:50%;
-  transform:translateX(-50%);
-  letter-spacing:6px;
-  font-size:13px;
-  opacity:.6;
-}
+.menu-btn{position:absolute;top:20px;right:20px;font-size:28px;cursor:pointer;color:#ff7a00;z-index:1000;}
 
-.menu-btn{
-  position:absolute;
-  top:20px;
-  right:20px;
-  font-size:28px;
-  cursor:pointer;
-  color:#ff7a00;
-  z-index:1000;
-}
-
-.menu{
-  position:absolute;
-  top:0;
-  right:-360px;
-  width:360px;
-  height:100%;
-  background:rgba(10,10,10,.95);
-  backdrop-filter:blur(14px);
-  padding:25px;
-  transition:.4s;
-  border-left:1px solid rgba(255,122,0,.25);
-}
-
+.menu{position:absolute;top:0;right:-360px;width:360px;height:100%;background:rgba(10,10,10,.95);backdrop-filter:blur(14px);padding:25px;transition:.4s;border-left:1px solid rgba(255,122,0,.25);}
 .menu.active{right:0;}
 
 .menu h2{color:#ff7a00;}
-
-.menu input,.menu select{
-  width:100%;
-  padding:10px;
-  margin:6px 0 10px;
-  border-radius:10px;
-  border:1px solid rgba(255,122,0,.2);
-  background:#111;
-  color:#fff;
-}
+.menu input,.menu select{width:100%;padding:10px;margin:6px 0 10px;border-radius:10px;border:1px solid rgba(255,122,0,.2);background:#111;color:#fff;}
 
 .btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 
-button{
-  border:none;
-  border-radius:10px;
-  padding:10px;
-  font-weight:800;
-  cursor:pointer;
-  color:#fff;
-}
-
+button{border:none;border-radius:10px;padding:10px;font-weight:800;cursor:pointer;color:#fff;}
 .start{background:linear-gradient(135deg,#ff7a00,#ff3d00);}
 .pause{background:#444;}
 .reset{background:#222;border:1px solid rgba(255,122,0,.3);width:100%;margin-top:10px;}
 
-.center{
-  position:absolute;
-  top:45%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  text-align:center;
-}
+.center{position:absolute;top:45%;left:50%;transform:translate(-50%,-50%);text-align:center;}
 
-.title{
-  font-size:40px;
-  font-weight:900;
-  margin-bottom:12px;
-  text-shadow:0 0 20px rgba(255,122,0,.5);
-}
+.title{font-size:40px;font-weight:900;margin-bottom:12px;text-shadow:0 0 20px rgba(255,122,0,.5);}
+.timer{font-family:'Bebas Neue',sans-serif;font-size:120px;color:#ff7a00;text-shadow:0 0 30px rgba(255,122,0,.6);}
+.fox{width:360px;margin-bottom:10px;animation:float 4s ease-in-out infinite;}
 
-.timer{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:120px;
-  color:#ff7a00;
-  text-shadow:0 0 30px rgba(255,122,0,.6);
-}
-
-.fox{
-  width:360px;
-  margin-bottom:10px;
-  filter:drop-shadow(0 0 35px rgba(255,122,0,.4));
-  animation:float 4s ease-in-out infinite;
-}
-
-@keyframes float{
-  0%,100%{transform:translateY(0);}
-  50%{transform:translateY(-18px);}
-}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-18px);}}
 
 .shake{animation:shake .15s infinite;}
 .zoom{animation:zoom .3s ease-in-out infinite alternate;}
 .pulse{animation:pulse .6s infinite;}
 
-@keyframes pulse{
-  0%{transform:scale(1);filter:brightness(1);}
-  50%{transform:scale(1.12);filter:brightness(1.7);}
-  100%{transform:scale(1);filter:brightness(1);}
-}
+@keyframes pulse{0%{transform:scale(1);}50%{transform:scale(1.12);}100%{transform:scale(1);}}
+@keyframes shake{0%{transform:translate(-50%,-50%) translate(0,0);}50%{transform:translate(-50%,-50%) translate(-6px,4px);}100%{transform:translate(-50%,-50%) translate(4px,-6px);}}
+@keyframes zoom{0%{transform:translate(-50%,-50%) scale(1);}100%{transform:translate(-50%,-50%) scale(1.03);}}
 
-@keyframes shake{
-  0%{transform:translate(-50%,-50%) translate(0,0);}
-  25%{transform:translate(-50%,-50%) translate(6px,-4px);}
-  50%{transform:translate(-50%,-50%) translate(-6px,4px);}
-  75%{transform:translate(-50%,-50%) translate(4px,6px);}
-  100%{transform:translate(-50%,-50%) translate(-4px,-6px);}
-}
-
-@keyframes zoom{
-  0%{transform:translate(-50%,-50%) scale(1);}
-  100%{transform:translate(-50%,-50%) scale(1.03);}
-}
-
-.logos{
-  position:absolute;
-  bottom:20px;
-  right:20px;
-  display:flex;
-  gap:12px;
-}
-
+.logos{position:absolute;bottom:20px;right:20px;display:flex;gap:12px;}
 .logos img{width:55px;height:55px;object-fit:contain;}
 
-.overlay{
-  position:absolute;
-  inset:0;
-  background:rgba(0,0,0,.9);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  flex-direction:column;
-}
-
-.overlay h1{
-  font-size:60px;
-  color:#ff7a00;
-  font-family:'Bebas Neue',sans-serif;
-}
+.overlay{position:absolute;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;flex-direction:column;}
+.overlay h1{font-size:60px;color:#ff7a00;font-family:'Bebas Neue',sans-serif;}
 </style>
 </head>
 
@@ -176,192 +62,130 @@ button{
 <div class="menu-btn" onclick="toggleMenu()">☰</div>
 
 <div class="menu" id="menu">
-  <h2>Kontrol Paneli</h2>
+<h2>Kontrol Paneli</h2>
 
-  <label>Sayaç Adı</label>
-  <input id="titleInput"/>
+<label>Sayaç Adı</label>
+<input id="titleInput"/>
 
-  <label>Mod</label>
-  <select id="mode">
-    <option value="duration">Süre</option>
-    <option value="clock">Saat'e kadar</option>
-  </select>
+<label>Mod</label>
+<select id="mode">
+<option value="duration">Süre</option>
+<option value="clock">Saat'e kadar</option>
+</select>
 
-  <div id="durationBox">
-    <label>Saat</label><input id="hourInput" type="number"/>
-    <label>Dakika</label><input id="minuteInput" type="number"/>
-    <label>Saniye</label><input id="secondInput" type="number"/>
-  </div>
+<div>
+<label>Saat</label><input id="hourInput" type="number"/>
+<label>Dakika</label><input id="minuteInput" type="number"/>
+<label>Saniye</label><input id="secondInput" type="number"/>
+</div>
 
-  <div id="clockBox" style="display:none">
-    <label>Hedef Saat</label>
-    <input id="targetTime" placeholder="14:30"/>
-  </div>
+<div class="btn-row">
+<button class="start" onclick="startTimer()">Başlat</button>
+<button class="pause" onclick="pauseTimer()">Duraklat</button>
+</div>
 
-  <div class="btn-row">
-    <button class="start" onclick="startTimer()">Başlat</button>
-    <button class="pause" onclick="pauseTimer()">Duraklat</button>
-  </div>
-
-  <button class="reset" onclick="resetTimer()">Sıfırla</button>
+<button class="reset" onclick="resetTimer()">Sıfırla</button>
 </div>
 
 <div class="center" id="center">
-  <div class="title" id="title">Etkinlik</div>
-  <img src="tilki.png" class="fox" id="fox"/>
-  <div class="timer" id="timer">00:00:00</div>
+<div class="title" id="title">Etkinlik</div>
+<img src="tilki.png" class="fox" id="fox"/>
+<div class="timer" id="timer">00:00:00</div>
 </div>
 
 <div class="logos">
-  <img src="logo1.png"/>
-  <img src="logo2.png"/>
+<img src="logo1.png"/>
+<img src="logo2.png"/>
 </div>
 
 <div class="overlay" id="overlay">
-  <h1>SÜRE BİTTİ</h1>
+<h1>SÜRE BİTTİ</h1>
 </div>
 
 <script>
-/* ===== FIREBASE ===== */
 const firebaseConfig = {
-  apiKey: "AIzaSyBEXfWs0B3qG5gjswJtvQbgminrBU4XzuE",
-  authDomain: "doujam-ed005.firebaseapp.com",
-  databaseURL: "https://doujam-ed005-default-rtdb.firebaseio.com",
-  projectId: "doujam-ed005",
-  storageBucket: "doujam-ed005.appspot.com",
-  messagingSenderId: "58614616421",
-  appId: "1:58614616421:web:f345f642a739a3bec6118c"
+apiKey:"AIzaSyBEXfWs0B3qG5gjswJtvQbgminrBU4XzuE",
+authDomain:"doujam-ed005.firebaseapp.com",
+databaseURL:"https://doujam-ed005-default-rtdb.firebaseio.com",
+projectId:"doujam-ed005"
 };
 
 firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-const ref = db.ref("timerState");
+const db=firebase.database();
+const ref=db.ref("timerState");
 
-/* ===== UI ===== */
 const menu=document.getElementById("menu");
-const mode=document.getElementById("mode");
 const center=document.getElementById("center");
 const fox=document.getElementById("fox");
 const timer=document.getElementById("timer");
 const titleEl=document.getElementById("title");
+const overlay=document.getElementById("overlay");
 
-const durationBox=document.getElementById("durationBox");
-const clockBox=document.getElementById("clockBox");
-
-let interval;
 let timeLeft=0;
 let running=false;
-let beepCtx;
-let lastBeep=-1;
+let interval;
 
 function toggleMenu(){menu.classList.toggle("active");}
 
-mode.onchange=()=>{
-  durationBox.style.display=mode.value==="duration"?"block":"none";
-  clockBox.style.display=mode.value==="clock"?"block":"none";
-};
-
-function initAudio(){
-  if(!beepCtx) beepCtx=new (window.AudioContext||window.webkitAudioContext)();
-  if(beepCtx.state==="suspended") beepCtx.resume();
-}
-
-function beep(){
-  const o=beepCtx.createOscillator();
-  const g=beepCtx.createGain();
-  o.type="square";
-  o.frequency.value=900;
-  g.gain.value=0.05;
-  o.connect(g);g.connect(beepCtx.destination);
-  o.start();
-  o.stop(beepCtx.currentTime+0.08);
-}
-
 function format(s){
-  let h=Math.floor(s/3600);
-  let m=Math.floor((s%3600)/60);
-  let sec=s%60;
-  return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0");
+let h=Math.floor(s/3600);
+let m=Math.floor((s%3600)/60);
+let sec=s%60;
+return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0");
 }
 
-/* ===== FIREBASE LISTENER (LIVE SYNC) ===== */
 ref.on("value",(snap)=>{
-  const data=snap.val();
-  if(!data) return;
+const d=snap.val();
+if(!d) return;
 
-  titleEl.innerText=data.title;
-  timeLeft=data.timeLeft;
-  running=data.running;
+titleEl.innerText=d.title;
+timeLeft=d.timeLeft;
+running=d.running;
 
-  timer.innerText=format(timeLeft);
+timer.innerText=format(timeLeft);
 
-  if(timeLeft<=10 && timeLeft>0){
-    center.classList.add("shake","zoom");
-    fox.classList.add("pulse");
-  }
-
-  if(timeLeft<=0 && data.running){
-    overlay.style.display="flex";
-    confetti({particleCount:150,spread:120});
-  }
+if(timeLeft<=0 && d.running){
+overlay.style.display="flex";
+confetti();
+}
 });
 
-/* ===== CONTROL ===== */
 function startTimer(){
-  initAudio();
+const t=titleInput.value;
+if(t) titleEl.innerText=t;
 
-  const titleInput=document.getElementById("titleInput");
-  if(titleInput.value){
-    titleEl.innerText=titleInput.value;
-  }
+timeLeft=(+hourInput.value||0)*3600+(+minuteInput.value||0)*60+(+secondInput.value||0);
 
-  if(!running){
-    timeLeft =
-      mode.value==="duration"
-      ? (+hourInput.value||0)*3600 + (+minuteInput.value||0)*60 + (+secondInput.value||0)
-      : getClock();
-  }
+ref.set({
+title:titleEl.innerText,
+timeLeft,
+running:true
+});
 
-  ref.set({
-    title:titleEl.innerText,
-    timeLeft:timeLeft,
-    running:true
-  });
+clearInterval(interval);
 
-  clearInterval(interval);
+interval=setInterval(()=>{
+timeLeft--;
 
-  interval=setInterval(()=>{
-    timeLeft--;
+ref.update({timeLeft});
 
-    ref.update({
-      timeLeft:timeLeft
-    });
+if(timeLeft<=0){
+clearInterval(interval);
+ref.update({running:false,timeLeft:0});
+}
+},1000);
 
-    if(timeLeft<=10 && timeLeft>0){
-      beep();
-    }
-
-    if(timeLeft<=0){
-      clearInterval(interval);
-      ref.update({running:false,timeLeft:0});
-    }
-  },1000);
-
-  toggleMenu();
+toggleMenu();
 }
 
 function pauseTimer(){
-  clearInterval(interval);
-  ref.update({running:false});
+clearInterval(interval);
+ref.update({running:false});
 }
 
 function resetTimer(){
-  clearInterval(interval);
-  ref.set({
-    title:"DOU JAM",
-    timeLeft:0,
-    running:false
-  });
+clearInterval(interval);
+ref.set({title:"DOU JAM",timeLeft:0,running:false});
 }
 </script>
 

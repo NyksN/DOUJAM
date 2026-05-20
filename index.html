@@ -22,16 +22,14 @@ body{height:100vh;overflow:hidden;color:white;background:radial-gradient(circle 
 .timer{font-family:'Bebas Neue',sans-serif;font-size:140px;color:#ffffff;text-shadow:0 0 30px rgba(255,255,255,.3); transition: color 0.1s, transform 0.1s, text-shadow 0.1s;}
 .fox{width:360px;margin-bottom:10px;animation:float 4s ease-in-out infinite;}
 
-/* Renk Durumları */
 .color-warning { color: #ffeb3b !important; text-shadow:0 0 30px rgba(255,235,59,.5) !important; }
 .color-danger { color: #ff3d00 !important; text-shadow:0 0 30px rgba(255,61,0,.5) !important; }
 
-/* Duraklatıldı Arayüzü */
 .paused-overlay { position:absolute; top:60%; left:50%; transform:translateX(-50%); font-size:24px; font-weight:800; color:#ff7a00; letter-spacing: 4px; opacity:0; transition: opacity 0.3s; background: rgba(0,0,0,0.6); padding: 10px 30px; border-radius: 50px; border: 1px solid #ff7a00; pointer-events: none;}
 .is-paused .paused-overlay { opacity: 1; }
 .is-paused .timer { opacity: 0.5; }
 
-/* YENİ: Geliştirilmiş Büyük ve Sonsuz Kayan Yazı Bandı */
+/* KUSURSUZ KAYAN YAZI - YENİLENDİ */
 .marquee-container { 
     position:absolute; 
     top:80px; 
@@ -43,26 +41,20 @@ body{height:100vh;overflow:hidden;color:white;background:radial-gradient(circle 
     overflow:hidden; 
     display:none; 
 }
-.marquee-wrapper {
-    display: flex;
-    width: max-content;
-    animation: scrollMarquee 15s linear infinite; /* Hızı buradan ayarlayabilirsin */
-}
 .marquee-content { 
-    font-size:32px; /* Yazı boyutu büyütüldü */
+    display: inline-block;
+    font-size:32px; 
     font-weight:800; 
     color:#ffb74d; 
-    padding-right:150px; /* İki yazı arasındaki boşluk miktarı */
     white-space:nowrap; 
+    animation: scrollMarquee 15s linear infinite; 
 }
 
-/* Kusursuz sonsuz döngü animasyonu */
 @keyframes scrollMarquee {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
+    0% { transform: translateX(100vw); } /* Ekranın tam sağından başla */
+    100% { transform: translateX(-100%); } /* Kendi boyutu kadar sola çık */
 }
 
-/* Progress Bar */
 .progress-bar-container { position:absolute; bottom:0; left:0; width:100%; height:8px; background:rgba(255,255,255,0.1); }
 .progress-bar-fill { height:100%; background:linear-gradient(90deg,#ff7a00,#ffeb3b); width:100%; transition: width 0.5s linear; }
 
@@ -74,7 +66,6 @@ body{height:100vh;overflow:hidden;color:white;background:radial-gradient(circle 
 .overlay{position:absolute;inset:0;background:rgba(0,0,0,.95);display:none;align-items:center;justify-content:center;flex-direction:column; z-index:100;}
 .overlay h1{font-size:100px;color:#ff7a00;font-family:'Bebas Neue',sans-serif; text-shadow: 0 0 50px #ff7a00; animation: float 3s ease-in-out infinite;}
 
-/* Başlangıç Ekranı (Ses yetkisi için) */
 #init-screen { position:fixed; inset:0; background:#000; z-index:999; display:flex; justify-content:center; align-items:center; cursor:pointer; }
 #init-screen h2 { color:#fff; border: 2px solid #ff7a00; padding: 20px 40px; border-radius: 10px; font-family: 'Montserrat', sans-serif;}
 </style>
@@ -88,10 +79,7 @@ body{height:100vh;overflow:hidden;color:white;background:radial-gradient(circle 
 <div class="brand">DOU JAM</div>
 
 <div class="marquee-container" id="marquee-box">
-    <div class="marquee-wrapper">
-        <div class="marquee-content" id="marquee-text1">DOU JAM</div>
-        <div class="marquee-content" id="marquee-text2">DOU JAM</div>
-    </div>
+    <div class="marquee-content" id="marquee-text">DOU JAM Etkinliğine Hoş Geldiniz!</div>
 </div>
 
 <div class="center" id="center">
@@ -135,8 +123,7 @@ const titleEl = document.getElementById("title");
 const overlay = document.getElementById("overlay");
 const progressBar = document.getElementById("progress-bar");
 const marqueeBox = document.getElementById("marquee-box");
-const marqueeText1 = document.getElementById("marquee-text1");
-const marqueeText2 = document.getElementById("marquee-text2");
+const marqueeText = document.getElementById("marquee-text");
 const initScreen = document.getElementById("init-screen");
 
 const sfxTick = document.getElementById("sfx-tick");
@@ -148,7 +135,6 @@ let lastSecond = -1;
 let finishTriggered = false;
 let confettiInterval; 
 
-// Sunucu saat farkı senkronizasyonu (Kritik Düzeltme)
 let serverOffset = 0;
 db.ref(".info/serverTimeOffset").on("value", (snap) => {
     serverOffset = snap.val() || 0;
@@ -198,11 +184,9 @@ ref.on("value", (snap) => {
     state = data;
     titleEl.innerText = state.title || "Etkinlik";
     
-    // Mesaj Alanı Güncellemesi (Kusursuz İkizleme)
     if(state.showMarquee && state.message) {
         marqueeBox.style.display = "block";
-        marqueeText1.innerText = state.message;
-        marqueeText2.innerText = state.message;
+        marqueeText.innerText = state.message;
     } else {
         marqueeBox.style.display = "none";
     }
@@ -232,7 +216,7 @@ function updateLoop() {
     let timeLeftMs = 0;
 
     if (state.running) {
-        timeLeftMs = state.endTime - getServerTime(); // Yerel saat değil sunucu saati kullanılıyor
+        timeLeftMs = state.endTime - getServerTime(); 
     } else {
         timeLeftMs = state.pausedLeft;
     }
@@ -253,7 +237,6 @@ function updateLoop() {
         ref.update({ running: false, finished: true, pausedLeft: 0 });
     }
 
-    // Nefes Alan Bloom Efekti (Son 60 Saniye)
     timerEl.className = "timer"; 
     if(timeLeftMs <= 60000 && timeLeftMs > 0 && state.running) {
         let intensity = (Math.sin(Date.now() / 200) + 1) / 2; 

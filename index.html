@@ -8,6 +8,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@300;500;700;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 
@@ -19,7 +23,6 @@ body{
   font-family:'Montserrat',sans-serif;
 }
 
-/* TOP BRAND */
 .brand{
   position:absolute;
   top:20px;
@@ -30,7 +33,6 @@ body{
   opacity:.6;
 }
 
-/* MENU */
 .menu-btn{
   position:absolute;
   top:20px;
@@ -83,7 +85,6 @@ button{
 .pause{background:#444;}
 .reset{background:#222;border:1px solid rgba(255,122,0,.3);width:100%;margin-top:10px;}
 
-/* CENTER */
 .center{
   position:absolute;
   top:45%;
@@ -92,7 +93,6 @@ button{
   text-align:center;
 }
 
-/* TITLE (ÜSTE ALINDI + DAHA PREMIUM) */
 .title{
   font-size:40px;
   font-weight:900;
@@ -100,7 +100,6 @@ button{
   text-shadow:0 0 20px rgba(255,122,0,.5);
 }
 
-/* TIMER */
 .timer{
   font-family:'Bebas Neue',sans-serif;
   font-size:120px;
@@ -108,7 +107,6 @@ button{
   text-shadow:0 0 30px rgba(255,122,0,.6);
 }
 
-/* FOX (BÜYÜTÜLDÜ) */
 .fox{
   width:360px;
   margin-bottom:10px;
@@ -116,15 +114,14 @@ button{
   animation:float 4s ease-in-out infinite;
 }
 
-/* ANİMASYONLAR GERİ */
-.shake{animation:shake .15s infinite;}
-.zoom{animation:zoom .3s ease-in-out infinite alternate;}
-.pulse{animation:pulse .6s infinite;}
-
 @keyframes float{
   0%,100%{transform:translateY(0);}
   50%{transform:translateY(-18px);}
 }
+
+.shake{animation:shake .15s infinite;}
+.zoom{animation:zoom .3s ease-in-out infinite alternate;}
+.pulse{animation:pulse .6s infinite;}
 
 @keyframes pulse{
   0%{transform:scale(1);filter:brightness(1);}
@@ -145,7 +142,6 @@ button{
   100%{transform:translate(-50%,-50%) scale(1.03);}
 }
 
-/* LOGOS */
 .logos{
   position:absolute;
   bottom:20px;
@@ -154,13 +150,8 @@ button{
   gap:12px;
 }
 
-.logos img{
-  width:55px;
-  height:55px;
-  object-fit:contain;
-}
+.logos img{width:55px;height:55px;object-fit:contain;}
 
-/* OVERLAY */
 .overlay{
   position:absolute;
   inset:0;
@@ -231,8 +222,22 @@ button{
 </div>
 
 <script>
-let interval,timeLeft=0,running=false,beepCtx,lastBeep=-1;
+/* ===== FIREBASE ===== */
+const firebaseConfig = {
+  apiKey: "AIzaSyBEXfWs0B3qG5gjswJtvQbgminrBU4XzuE",
+  authDomain: "doujam-ed005.firebaseapp.com",
+  databaseURL: "https://doujam-ed005-default-rtdb.firebaseio.com",
+  projectId: "doujam-ed005",
+  storageBucket: "doujam-ed005.appspot.com",
+  messagingSenderId: "58614616421",
+  appId: "1:58614616421:web:f345f642a739a3bec6118c"
+};
 
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const ref = db.ref("timerState");
+
+/* ===== UI ===== */
 const menu=document.getElementById("menu");
 const mode=document.getElementById("mode");
 const center=document.getElementById("center");
@@ -242,6 +247,12 @@ const titleEl=document.getElementById("title");
 
 const durationBox=document.getElementById("durationBox");
 const clockBox=document.getElementById("clockBox");
+
+let interval;
+let timeLeft=0;
+let running=false;
+let beepCtx;
+let lastBeep=-1;
 
 function toggleMenu(){menu.classList.toggle("active");}
 
@@ -266,19 +277,6 @@ function beep(){
   o.stop(beepCtx.currentTime+0.08);
 }
 
-function getDuration(){
-  return (+hourInput.value||0)*3600 + (+minuteInput.value||0)*60 + (+secondInput.value||0);
-}
-
-function getClock(){
-  let t=targetTime.value.split(":");
-  let now=new Date();
-  let target=new Date();
-  target.setHours(+t[0],+t[1],0,0);
-  if(target<now) target.setDate(target.getDate()+1);
-  return Math.floor((target-now)/1000);
-}
-
 function format(s){
   let h=Math.floor(s/3600);
   let m=Math.floor((s%3600)/60);
@@ -286,57 +284,84 @@ function format(s){
   return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0");
 }
 
+/* ===== FIREBASE LISTENER (LIVE SYNC) ===== */
+ref.on("value",(snap)=>{
+  const data=snap.val();
+  if(!data) return;
+
+  titleEl.innerText=data.title;
+  timeLeft=data.timeLeft;
+  running=data.running;
+
+  timer.innerText=format(timeLeft);
+
+  if(timeLeft<=10 && timeLeft>0){
+    center.classList.add("shake","zoom");
+    fox.classList.add("pulse");
+  }
+
+  if(timeLeft<=0 && data.running){
+    overlay.style.display="flex";
+    confetti({particleCount:150,spread:120});
+  }
+});
+
+/* ===== CONTROL ===== */
 function startTimer(){
   initAudio();
 
-  if(titleInput.value) titleEl.innerText=titleInput.value;
-
-  if(!running){
-    timeLeft = mode.value==="duration"?getDuration():getClock();
+  const titleInput=document.getElementById("titleInput");
+  if(titleInput.value){
+    titleEl.innerText=titleInput.value;
   }
 
-  if(timeLeft<=0) return;
+  if(!running){
+    timeLeft =
+      mode.value==="duration"
+      ? (+hourInput.value||0)*3600 + (+minuteInput.value||0)*60 + (+secondInput.value||0)
+      : getClock();
+  }
+
+  ref.set({
+    title:titleEl.innerText,
+    timeLeft:timeLeft,
+    running:true
+  });
 
   clearInterval(interval);
-  running=true;
-  lastBeep=-1;
 
   interval=setInterval(()=>{
-    timer.innerText=format(timeLeft);
+    timeLeft--;
 
-    if(timeLeft<=10 && timeLeft>0 && timeLeft!==lastBeep){
+    ref.update({
+      timeLeft:timeLeft
+    });
+
+    if(timeLeft<=10 && timeLeft>0){
       beep();
-      lastBeep=timeLeft;
-
-      center.classList.add("shake","zoom");
-      fox.classList.add("pulse");
     }
 
     if(timeLeft<=0){
       clearInterval(interval);
-      running=false;
-      overlay.style.display="flex";
-      confetti({particleCount:140,spread:110});
-      return;
+      ref.update({running:false,timeLeft:0});
     }
-
-    timeLeft--;
   },1000);
 
   toggleMenu();
 }
 
-function pauseTimer(){clearInterval(interval);running=false;}
+function pauseTimer(){
+  clearInterval(interval);
+  ref.update({running:false});
+}
 
 function resetTimer(){
   clearInterval(interval);
-  running=false;
-  timeLeft=0;
-  lastBeep=-1;
-  timer.innerText="00:00:00";
-  overlay.style.display="none";
-  center.classList.remove("shake","zoom");
-  fox.classList.remove("pulse");
+  ref.set({
+    title:"DOU JAM",
+    timeLeft:0,
+    running:false
+  });
 }
 </script>
 
